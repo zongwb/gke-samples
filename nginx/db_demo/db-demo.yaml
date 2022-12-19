@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-demo
+spec:
+  replicas: 1
+  strategy: {}
+  selector:
+    matchLabels:
+      app: db-demo
+  template:
+    metadata:
+      labels:
+        app: db-demo
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      automountServiceAccountToken: false
+      serviceAccountName: ${K8S_SA}
+      containers:
+      - env:
+        - name: PGDATABASE
+          value: ${PGDATABASE}
+        - name: PGHOST
+          value: "127.0.0.1"
+        - name: PGPORT
+          value: "5432"
+        - name: PGUSER
+          value: ${PGUSER}
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: pg_password
+        image: gcr.io/${PROJECT_ID}/db-demo:${DB_DEMO_VERSION}
+        name: db-demo
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          initialDelaySeconds: 10
+          httpGet:
+            path: "/_healthz"
+            port: 3000
+            httpHeaders:
+            - name: "Cookie"
+              value: "shop_session-id=x-readiness-probe"
+        livenessProbe:
+          initialDelaySeconds: 10
+          httpGet:
+            path: "/_healthz"
+            port: 3000
+            httpHeaders:
+            - name: "Cookie"
+              value: "shop_session-id=x-liveness-probe"
+        resources: {}
+
+      - name: cloud-sql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.30.0
+        command:
+          - "/cloud_sql_proxy"
+          - "-log_debug_stdout"
+          - "-instances=${PG_CONN_NAME}=tcp:5432"
+        securityContext:
+          runAsNonRoot: true
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu:    "1"
+
+      # nodeSelector:
+      #   cloud.google.com/gke-nodepool: ${NODE_POOL}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-demo
+spec:
+  type: ClusterIP
+  selector:
+    app: db-demo
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000

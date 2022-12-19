@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-issuer"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-Frame-Options: SAMEORIGIN";
+      more_set_headers "Referrer-Policy: same-origin";
+      more_set_headers "Strict-Transport-Security:: 31536000; includeSubDomains";
+      more_set_headers "Expect-CT: max-age=86400, enforce";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+    nginx.ingress.kubernetes.io/server-snippet: |
+      if ( $host = "${OLD_DOMAIN}" ) {
+        return 301 $scheme://${BASE_DOMAIN}$request_uri;
+      }
+
+spec:
+  tls:
+  - hosts:
+    - ${BASE_DOMAIN}
+    secretName: secret-tls-${BASE_DOMAIN}
+  - hosts:
+    - ${OLD_DOMAIN}
+    secretName: secret-tls-${OLD_DOMAIN}
+  rules:
+  - host: ${BASE_DOMAIN}
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: ${APP_SVC_NAME}
+            port:
+              number: 80
+  - host: ${OLD_DOMAIN}
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: ${APP_SVC_NAME}
+            port:
+              number: 80
