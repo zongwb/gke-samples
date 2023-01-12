@@ -50,7 +50,7 @@ sleep 30
 kubectl delete -A ValidatingWebhookConfiguration nginx-ingress-nginx-admission -n ingress-controller
 
 echo "Installing ClusterIssuer"
-kubectl apply -f letsencrypt-issuer.yaml -n cert-manager
+envsubst < letsencrypt-issuer.yaml | kubectl apply -f - -n cert-manager
 
 echo "Checking the status"
 kubectl get all -n cert-manager

@@ -30,4 +30,3 @@ Additional info
   - How to create a K8S service account and bind it to a GCP service account, in order to access Google managed resources.
   - How to securely and conveniently connect to a Cloud SQL (PostgreSQL) instance.
   - How to deploy a separate app ingress.
-- `helpers` contains some scripts that may come handy. You may need to adapt them to fit your purpose.
