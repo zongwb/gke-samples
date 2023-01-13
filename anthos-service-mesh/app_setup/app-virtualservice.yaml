@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: app-ingress
+  namespace: ${K8S_NS}
+spec:
+  hosts:
+  - "${BASE_DOMAIN}"
+  gateways:
+  - asm-ingress/asm-ingressgateway
+  http:
+  - route:
+    - destination:
+        host: ${APP_SVC_NAME}
+        port:
+          number: 80

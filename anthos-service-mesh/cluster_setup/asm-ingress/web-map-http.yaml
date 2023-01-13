@@ -1,0 +1,23 @@
+kind: compute#urlMap
+name: web-map-http
+defaultUrlRedirect:
+  redirectResponseCode: MOVED_PERMANENTLY_DEFAULT
+  httpsRedirect: True
+tests:
+- description: Test with no query parameters
+  host: "http://${BASE_DOMAIN}"
+  path: /
+  expectedOutputUrl: "https://${BASE_DOMAIN}/"
+  expectedRedirectResponseCode: 301
+hostRules:
+- hosts:
+  - "${OLD_DOMAIN}"
+  pathMatcher: redirect-matcher
+pathMatchers:
+- defaultUrlRedirect:
+    hostRedirect: ${BASE_DOMAIN} # Omit to keep the requested host
+    httpsRedirect: True
+    #pathRedirect: /NEW_PATH # Omit to keep the requested path
+    redirectResponseCode: MOVED_PERMANENTLY_DEFAULT
+    stripQuery: False
+  name: redirect-matcher

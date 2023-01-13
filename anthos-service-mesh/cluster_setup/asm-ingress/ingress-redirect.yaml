@@ -1,0 +1,14 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ingress-redirect
+  namespace: asm-ingress
+spec:
+  hosts:
+  - "${OLD_DOMAIN}"
+  gateways:
+  - asm-ingress/asm-ingressgateway
+  http:
+    - redirect:
+        authority: ${BASE_DOMAIN}
+        redirectCode: 301

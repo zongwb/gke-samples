@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: base-domain
+  namespace: asm-ingress
+spec:
+  host: "${BASE_DOMAIN}"
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
